@@ -1,46 +1,59 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { DealGrid } from "@/components/deals/DealGrid";
+import { DealCardSkeleton } from "@/components/deals/DealCardSkeleton";
+import { DealDetailDrawer } from "@/components/deals/DealDetailDrawer";
 import { mockDeals } from "@/data/mockDeals";
-import { DEFAULT_SEARCH_STATE, searchDeals } from "@/services/dealService";
 
 export default function Home() {
-  const [message, setMessage] = useState("Booting DealDrop data layer...");
+  const deals = useMemo(() => mockDeals.slice(0, 6), []);
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [savedDealIds, setSavedDealIds] = useState(() => new Set());
+  const [loading] = useState(false);
 
-  const totalDeals = useMemo(() => mockDeals.length, []);
-
-  useEffect(() => {
-    async function run() {
-      try {
-        const response = await searchDeals({
-          ...DEFAULT_SEARCH_STATE,
-          months: [],
-        });
-
-        // Phase-1 smoke check for cache + search wiring.
-        console.log("Deal count:", mockDeals.length);
-        console.log("Search response:", response);
-
-        setMessage(`Loaded ${response.totalCount} deals (${response.cacheStatus} fetch).`);
-      } catch (error) {
-        setMessage("Search failed in smoke test.");
+  function handleToggleSave(deal) {
+    setSavedDealIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(deal.id)) {
+        next.delete(deal.id);
+      } else {
+        next.add(deal.id);
       }
-    }
-
-    run();
-  }, []);
+      return next;
+    });
+  }
 
   return (
     <main className="min-h-screen bg-bg-primary text-text-primary">
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
-        <h1 className="text-3xl font-bold">DealDrop</h1>
-        <p className="text-text-secondary">Phase 1 foundation is wired and running.</p>
-        <div className="rounded-xl border border-border bg-bg-card p-5">
-          <p className="text-sm text-text-secondary">Mock deals available</p>
-          <p className="text-2xl font-semibold">{totalDeals}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-bg-elevated p-4 text-sm">{message}</div>
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <header className="mb-6">
+          <h1 className="text-3xl font-bold">DealDrop Search</h1>
+          <p className="mt-1 text-sm text-text-secondary">Phase 2: Deal cards and detail drawer implemented.</p>
+        </header>
+
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <DealCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : (
+          <DealGrid
+            deals={deals}
+            savedDealIds={savedDealIds}
+            onOpenDeal={setSelectedDeal}
+            onToggleSave={handleToggleSave}
+          />
+        )}
       </section>
+
+      <DealDetailDrawer
+        deal={selectedDeal}
+        isOpen={Boolean(selectedDeal)}
+        onClose={() => setSelectedDeal(null)}
+        onSelectDeal={setSelectedDeal}
+      />
     </main>
   );
 }
