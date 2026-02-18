@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { AppProvider, useAppContext } from "@/contexts/AppContext";
 import { useSearch } from "@/hooks/useSearch";
+import { useExperiment } from "@/hooks/useExperiment";
+import { track } from "@/lib/analytics";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ActiveFilters } from "@/components/search/ActiveFilters";
 import { SortControls } from "@/components/search/SortControls";
@@ -22,6 +24,9 @@ import { PointsBalanceCard } from "@/components/dashboard/PointsBalanceCard";
 import { TravelGoalTracker } from "@/components/dashboard/TravelGoalTracker";
 import { SavedDealsList } from "@/components/saved/SavedDealsList";
 import { SettingsForm } from "@/components/settings/SettingsForm";
+import { UpgradeBanner } from "@/components/subscriber/UpgradeBanner";
+import { PaywallGate } from "@/components/subscriber/PaywallGate";
+import { Footer } from "@/components/layout/Footer";
 import { DEFAULT_TRAVEL_GOAL } from "@/lib/constants";
 
 function DashboardTab() {
@@ -91,6 +96,8 @@ function SearchTab() {
   } = useSearch();
 
   const {
+    settings,
+    updateSettings,
     setSelectedDeal,
     savedDealIds,
     toggleSavedDeal,
@@ -98,10 +105,17 @@ function SearchTab() {
   } = useAppContext();
 
   const visibleResults = useMemo(() => results.slice(0, 18), [results]);
+  const blurFromIndex = settings.isPro ? undefined : 5;
+  const hiddenCount = settings.isPro ? 0 : Math.max(0, visibleResults.length - 5);
 
   function handleOpenDeal(deal) {
     setSelectedDeal(deal);
     addRecentlyViewedDealId(deal.id);
+  }
+
+  function upgradeToPro() {
+    updateSettings({ isPro: true });
+    track("upgraded_to_pro", { source: "paywall" });
   }
 
   return (
@@ -110,6 +124,8 @@ function SearchTab() {
         <h1 className="text-3xl font-bold">DealDrop Search</h1>
         <p className="text-sm text-text-secondary">Live search with filters, cache status, and URL state sync.</p>
       </header>
+
+      <UpgradeBanner isPro={Boolean(settings.isPro)} onUpgrade={upgradeToPro} />
 
       <SearchBar searchState={searchState} onChange={updateSearch} />
       <CacheStatusBar cacheStatus={cacheStatus} cachedAt={cachedAt} onRefresh={refresh} />
@@ -143,7 +159,17 @@ function SearchTab() {
       ) : null}
 
       {!loading && !error && visibleResults.length > 0 ? (
-        <DealGrid deals={visibleResults} savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
+        <>
+          <DealGrid
+            deals={visibleResults}
+            savedDealIds={savedDealIds}
+            blurFromIndex={blurFromIndex}
+            experimentVariant={experiment.assignment}
+            onOpenDeal={handleOpenDeal}
+            onToggleSave={toggleSavedDeal}
+          />
+          {!settings.isPro && hiddenCount > 0 ? <PaywallGate hiddenCount={hiddenCount} onUpgrade={upgradeToPro} /> : null}
+        </>
       ) : null}
 
       <p className="text-xs text-text-secondary">Experiment variant: {experiment.assignment}</p>
@@ -173,6 +199,7 @@ function SettingsTab() {
 
 function ShellContent() {
   const { activeTab, setActiveTab, selectedDeal, setSelectedDeal } = useAppContext();
+  const experiment = useExperiment();
 
   return (
     <main className="min-h-screen bg-bg-primary text-text-primary">
@@ -199,6 +226,8 @@ function ShellContent() {
         {activeTab === "search" ? <SearchTab /> : null}
         {activeTab === "saved" ? <SavedTab /> : null}
         {activeTab === "settings" ? <SettingsTab /> : null}
+
+        <Footer experiment={experiment} />
       </section>
 
       <DealDetailDrawer
@@ -218,4 +247,3 @@ export default function Home() {
     </AppProvider>
   );
 }
-

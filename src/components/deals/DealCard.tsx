@@ -7,17 +7,18 @@ import { formatMonthYear, formatTimeAgo } from "@/lib/formatters";
 import { cn } from "@/lib/cn";
 import { track } from "@/lib/analytics";
 import { getBestProgramOption } from "@/lib/dealScoring";
-import type { Deal } from "@/types";
+import type { Deal, ExperimentVariant } from "@/types";
 
 type DealCardProps = {
   deal: Deal;
   isSaved?: boolean;
   isBlurred?: boolean;
+  experimentVariant?: ExperimentVariant;
   onOpen: (deal: Deal) => void;
   onToggleSave: (deal: Deal) => void;
 };
 
-export function DealCard({ deal, isSaved = false, isBlurred = false, onOpen, onToggleSave }: DealCardProps) {
+export function DealCard({ deal, isSaved = false, isBlurred = false, experimentVariant, onOpen, onToggleSave }: DealCardProps) {
   const updatedAgo = useMemo(() => formatTimeAgo(new Date(deal.updatedAt).getTime()), [deal.updatedAt]);
   const bestOption = useMemo(() => getBestProgramOption(deal.programOptions), [deal.programOptions]);
 
@@ -26,10 +27,14 @@ export function DealCard({ deal, isSaved = false, isBlurred = false, onOpen, onT
     onOpen(deal);
   }
 
+  function saveDeal() {
+    onToggleSave(deal);
+    track("deal_saved", { deal_id: deal.id, experiment_variant: experimentVariant });
+  }
+
   function handleSave(event: React.MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
-    onToggleSave(deal);
-    track("deal_saved", { deal_id: deal.id });
+    saveDeal();
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
@@ -39,7 +44,7 @@ export function DealCard({ deal, isSaved = false, isBlurred = false, onOpen, onT
     }
     if (event.key.toLowerCase() === "s") {
       event.preventDefault();
-      onToggleSave(deal);
+      saveDeal();
     }
   }
 
