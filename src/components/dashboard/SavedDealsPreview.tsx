@@ -1,0 +1,31 @@
+import type { SavedDeal } from "@/types";
+
+type SavedDealsPreviewProps = {
+  savedDeals: SavedDeal[];
+  onViewAll: () => void;
+};
+
+export function SavedDealsPreview({ savedDeals, onViewAll }: SavedDealsPreviewProps) {
+  const top = savedDeals.slice(0, 3);
+
+  return (
+    <section className="rounded-2xl border border-border bg-bg-card p-4">
+      <h2 className="text-xl font-semibold">Saved deals</h2>
+      {top.length ? (
+        <ul className="mt-2 space-y-2">
+          {top.map((saved) => (
+            <li key={saved.id} className="rounded-lg border border-border bg-bg-elevated/40 p-2">
+              <p className="text-sm font-medium">{saved.deal.origin.code} → {saved.deal.destination.code}</p>
+              <p className="text-xs text-text-secondary">Saved {new Date(saved.savedAt).toLocaleDateString()}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-text-secondary">Save deals from Search to track them here.</p>
+      )}
+      <button type="button" className="mt-3 text-sm text-brand-primary underline" onClick={onViewAll}>
+        View all saved ({savedDeals.length}) →
+      </button>
+    </section>
+  );
+}

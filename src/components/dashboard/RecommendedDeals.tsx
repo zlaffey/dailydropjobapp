@@ -1,0 +1,31 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getRecommendedDeals } from "@/services/dealService";
+import { DealGrid } from "@/components/deals/DealGrid";
+import type { Deal, UserSettings } from "@/types";
+
+type RecommendedDealsProps = {
+  settings: UserSettings;
+  savedDealIds: Set<string>;
+  onOpenDeal: (deal: Deal) => void;
+  onToggleSave: (deal: Deal) => void;
+};
+
+export function RecommendedDeals({ settings, savedDealIds, onOpenDeal, onToggleSave }: RecommendedDealsProps) {
+  const [deals, setDeals] = useState<Deal[]>([]);
+
+  useEffect(() => {
+    getRecommendedDeals(settings, 4).then(setDeals).catch(() => setDeals([]));
+  }, [settings]);
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-xl font-semibold">Recommended for you</h2>
+        <p className="text-sm text-text-secondary">Based on your preferences</p>
+      </div>
+      <DealGrid deals={deals} savedDealIds={savedDealIds} onOpenDeal={onOpenDeal} onToggleSave={onToggleSave} />
+    </section>
+  );
+}
