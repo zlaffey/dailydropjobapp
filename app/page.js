@@ -20,6 +20,8 @@ import { RecentlyViewed } from "@/components/dashboard/RecentlyViewed";
 import { SavedDealsPreview } from "@/components/dashboard/SavedDealsPreview";
 import { PointsBalanceCard } from "@/components/dashboard/PointsBalanceCard";
 import { TravelGoalTracker } from "@/components/dashboard/TravelGoalTracker";
+import { SavedDealsList } from "@/components/saved/SavedDealsList";
+import { SettingsForm } from "@/components/settings/SettingsForm";
 import { DEFAULT_TRAVEL_GOAL } from "@/lib/constants";
 
 function DashboardTab() {
@@ -150,21 +152,21 @@ function SearchTab() {
 }
 
 function SavedTab() {
-  const { savedDeals } = useAppContext();
+  const { savedDeals, removeSavedDeal } = useAppContext();
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       <h1 className="text-3xl font-bold">Saved Deals</h1>
-      <p className="text-sm text-text-secondary">{savedDeals.length} deals saved. Full saved view lands in Phase 5.</p>
+      <SavedDealsList savedDeals={savedDeals} onRemove={removeSavedDeal} />
     </section>
   );
 }
 
 function SettingsTab() {
-  const { settings } = useAppContext();
+  const { settings, updateSettings } = useAppContext();
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       <h1 className="text-3xl font-bold">Settings</h1>
-      <p className="text-sm text-text-secondary">Current profile: {settings.displayName}. Full settings editor lands in Phase 5.</p>
+      <SettingsForm settings={settings} onChange={updateSettings} />
     </section>
   );
 }
@@ -216,3 +218,4 @@ export default function Home() {
     </AppProvider>
   );
 }
+
