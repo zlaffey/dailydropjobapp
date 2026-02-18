@@ -56,7 +56,7 @@ export function DealCard({ deal, isSaved = false, isBlurred = false, experimentV
       onClick={openCard}
       onKeyDown={onKeyDown}
       className={cn(
-        "group rounded-2xl border border-border bg-bg-card p-4 text-left transition duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-brand-primary",
+        "group rounded-2xl border border-border bg-bg-card p-4 text-left transition duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
         !isBlurred && "hover:-translate-y-0.5 hover:border-brand-primary/50 hover:shadow-[0_0_24px_rgba(14,165,233,0.15)]",
         isBlurred && "pointer-events-none blur-[6px] opacity-70",
       )}
@@ -80,7 +80,7 @@ export function DealCard({ deal, isSaved = false, isBlurred = false, experimentV
       <p className="text-sm text-text-secondary">{deal.origin.city} → {deal.destination.city}</p>
 
       <div className="mt-4">
-        <PointsComparison options={deal.programOptions.slice(0, 2)} compact />
+        <PointsComparison options={deal.programOptions.slice(0, 2)} layout="split" />
       </div>
 
       <p className="mt-4 text-sm text-text-secondary">

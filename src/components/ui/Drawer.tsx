@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { cn } from "@/lib/cn";
 
 type DrawerProps = {
@@ -12,6 +12,7 @@ type DrawerProps = {
 
 export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const headingId = useId();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -43,17 +44,17 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={headingId}>
       <button type="button" className="absolute inset-0 bg-slate-950/70" aria-label="Close panel overlay" onClick={onClose} />
       <div
         ref={panelRef}
         className={cn(
-          "absolute bottom-0 right-0 h-[92vh] w-full max-w-[480px] overflow-auto border-l border-border bg-bg-card p-5 shadow-2xl",
+          "absolute bottom-0 right-0 h-[92vh] w-full max-w-[480px] overflow-auto overscroll-contain border-l border-border bg-bg-card p-5 shadow-2xl",
           "animate-[slide-in_150ms_ease-out]",
         )}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 id={headingId} className="text-lg font-semibold">{title}</h2>
           <button type="button" onClick={onClose} className="rounded-lg border border-border px-2 py-1 text-sm">
             Close
           </button>

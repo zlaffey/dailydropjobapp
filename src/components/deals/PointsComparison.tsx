@@ -6,14 +6,15 @@ import type { ProgramOption } from "@/types";
 
 type PointsComparisonProps = {
   options: ProgramOption[];
-  compact?: boolean;
+  layout?: "stacked" | "split";
 };
 
-export function PointsComparison({ options, compact = false }: PointsComparisonProps) {
+export function PointsComparison({ options, layout = "stacked" }: PointsComparisonProps) {
   const best = getBestProgramOption(options);
+  const isSplitLayout = layout === "split";
 
   return (
-    <div className={cn("grid gap-2", compact ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1") }>
+    <div className={cn("grid gap-2", isSplitLayout ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1")}>
       {options.map((option) => {
         const info = PROGRAM_INFO[option.program];
         const isBest = best?.program === option.program;

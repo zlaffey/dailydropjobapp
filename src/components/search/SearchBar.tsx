@@ -14,7 +14,7 @@ export function SearchBar({ searchState, onChange }: SearchBarProps) {
     <section className="space-y-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <AirportAutocomplete label="Origin" value={searchState.origin} onChange={(value) => onChange({ origin: value })} />
-        <AirportAutocomplete label="Destination" includeAnywhere value={searchState.destination} onChange={(value) => onChange({ destination: value })} />
+        <AirportAutocomplete label="Destination" mode="destination" value={searchState.destination} onChange={(value) => onChange({ destination: value })} />
       </div>
 
       <MonthSelector value={searchState.months} onChange={(value) => onChange({ months: value })} />

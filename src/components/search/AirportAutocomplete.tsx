@@ -6,14 +6,15 @@ import { AIRPORTS } from "@/lib/constants";
 type AirportAutocompleteProps = {
   label: string;
   value: string;
-  includeAnywhere?: boolean;
+  mode?: "standard" | "destination";
   onChange: (code: string) => void;
 };
 
-export function AirportAutocomplete({ label, value, includeAnywhere = false, onChange }: AirportAutocompleteProps) {
+export function AirportAutocomplete({ label, value, mode = "standard", onChange }: AirportAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
   const listboxId = `${label.toLowerCase().replace(/\s+/g, "-")}-suggestions`;
+  const fieldName = label.toLowerCase().replace(/\s+/g, "_");
 
   const suggestions = useMemo(() => {
     const normalized = input.trim().toLowerCase();
@@ -24,17 +25,21 @@ export function AirportAutocomplete({ label, value, includeAnywhere = false, onC
         airport.name.toLowerCase().includes(normalized),
     ).slice(0, 5);
 
-    if (includeAnywhere && "anywhere".includes(normalized)) {
+    if (mode === "destination" && "anywhere".includes(normalized)) {
       return [{ code: "ANYWHERE", city: "Anywhere", name: "Wildcard" }, ...airportMatches];
     }
 
     return airportMatches;
-  }, [includeAnywhere, input]);
+  }, [input, mode]);
 
   return (
     <label className="relative block text-xs text-text-secondary">
       <span className="mb-1 block">{label}</span>
       <input
+        name={fieldName}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
         value={input}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}

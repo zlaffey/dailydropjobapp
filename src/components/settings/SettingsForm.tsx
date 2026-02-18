@@ -48,6 +48,8 @@ export function SettingsForm({ settings, onChange }: SettingsFormProps) {
       <label className="block text-sm">
         <span className="mb-1 block text-text-secondary">Display name</span>
         <input
+          name="display_name"
+          autoComplete="name"
           value={settings.displayName}
           onChange={(event) => onChange({ displayName: event.target.value })}
           className="w-full rounded-lg border border-border bg-bg-elevated px-3 py-2"
@@ -137,6 +139,8 @@ export function SettingsForm({ settings, onChange }: SettingsFormProps) {
               <span className="mb-1 block text-text-secondary">{PROGRAM_INFO[program].shortName}</span>
               <input
                 type="number"
+                name={`points_${program}`}
+                autoComplete="off"
                 value={settings.pointsBalances[program] ?? 0}
                 onChange={(event) => updatePointsBalance(program, event.target.value)}
                 className="w-full rounded-lg border border-border bg-bg-elevated px-2 py-1 text-sm"

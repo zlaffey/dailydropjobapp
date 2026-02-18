@@ -1,17 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Deal, SearchState } from "@/types";
 import { DEFAULT_SEARCH_STATE, searchDeals } from "@/services/dealService";
 import { useDebounce } from "@/hooks/useDebounce";
 import { parseSearchStateFromURL, useURLState } from "@/hooks/useURLState";
 import { useExperiment } from "@/hooks/useExperiment";
 
+function areSearchStatesEqual(a: SearchState, b: SearchState): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function useSearch() {
   const experiment = useExperiment();
-  const { writeSearchStateToURL } = useURLState();
+  const { replaceSearchStateInURL } = useURLState();
 
-  const initialState = useMemo(() => {
+  const [searchState, setSearchState] = useState<SearchState>(() => {
     const parsed = parseSearchStateFromURL();
     if (!parsed.sortBy || parsed.sortBy === DEFAULT_SEARCH_STATE.sortBy) {
       return {
@@ -20,9 +24,7 @@ export function useSearch() {
       };
     }
     return parsed;
-  }, [experiment.assignment, experiment.variants]);
-
-  const [searchState, setSearchState] = useState<SearchState>(initialState);
+  });
   const [results, setResults] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,12 +53,29 @@ export function useSearch() {
   );
 
   useEffect(() => {
-    writeSearchStateToURL(debouncedState);
+    replaceSearchStateInURL(debouncedState);
     executeSearch(debouncedState);
-  }, [debouncedState, executeSearch, writeSearchStateToURL]);
+  }, [debouncedState, executeSearch, replaceSearchStateInURL]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasExplicitSort = new URLSearchParams(window.location.search).has("sort");
+    if (hasExplicitSort) return;
+
+    setSearchState((prev) => {
+      if (prev.sortBy !== DEFAULT_SEARCH_STATE.sortBy) return prev;
+      const nextSort = experiment.variants[experiment.assignment];
+      if (nextSort === prev.sortBy) return prev;
+      return { ...prev, sortBy: nextSort };
+    });
+  }, [experiment.assignment, experiment.variants]);
 
   const updateSearch = useCallback((nextValues: Partial<SearchState>) => {
     setSearchState((prev) => ({ ...prev, ...nextValues }));
+  }, []);
+
+  const applySearchStateFromURL = useCallback((nextState: SearchState) => {
+    setSearchState((prev) => (areSearchStatesEqual(prev, nextState) ? prev : nextState));
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -71,6 +90,8 @@ export function useSearch() {
     }));
   }, []);
 
+  const refresh = useCallback(() => executeSearch(searchState, true), [executeSearch, searchState]);
+
   return {
     experiment,
     searchState,
@@ -80,7 +101,8 @@ export function useSearch() {
     cacheStatus,
     cachedAt,
     updateSearch,
+    applySearchStateFromURL,
     clearFilters,
-    refresh: () => executeSearch(searchState, true),
+    refresh,
   };
 }

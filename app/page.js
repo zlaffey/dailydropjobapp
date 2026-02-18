@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AppProvider, useAppContext } from "@/contexts/AppContext";
 import { useSearch } from "@/hooks/useSearch";
+import { readUrlState, useURLState } from "@/hooks/useURLState";
 import { useExperiment } from "@/hooks/useExperiment";
 import { track } from "@/lib/analytics";
+import { sampleFlightDeals } from "@/data/sampleFlights";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ActiveFilters } from "@/components/search/ActiveFilters";
 import { SortControls } from "@/components/search/SortControls";
@@ -20,33 +22,30 @@ import { RecommendedDeals } from "@/components/dashboard/RecommendedDeals";
 import { TrendingDeals } from "@/components/dashboard/TrendingDeals";
 import { RecentlyViewed } from "@/components/dashboard/RecentlyViewed";
 import { SavedDealsPreview } from "@/components/dashboard/SavedDealsPreview";
-import { PointsBalanceCard } from "@/components/dashboard/PointsBalanceCard";
 import { TravelGoalTracker } from "@/components/dashboard/TravelGoalTracker";
 import { SavedDealsList } from "@/components/saved/SavedDealsList";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { UpgradeBanner } from "@/components/subscriber/UpgradeBanner";
 import { PaywallGate } from "@/components/subscriber/PaywallGate";
 import { AppShell } from "@/components/layout/AppShell";
+import { RightRail } from "@/components/layout/RightRail";
 import { DEFAULT_TRAVEL_GOAL } from "@/lib/constants";
 
-function DashboardTab() {
+const dealSnapshotById = new Map(sampleFlightDeals.map((deal) => [deal.id, deal]));
+
+function getDealSnapshotById(dealId) {
+  return dealSnapshotById.get(dealId) ?? null;
+}
+
+function DashboardTab({ onOpenDeal }) {
   const {
     setActiveTab,
-    setSelectedDeal,
     settings,
     savedDeals,
     savedDealIds,
     toggleSavedDeal,
     recentlyViewedDealIds,
-    addRecentlyViewedDealId,
   } = useAppContext();
-
-  const balanceEntries = Object.entries(settings.pointsBalances);
-
-  function handleOpenDeal(deal) {
-    setSelectedDeal(deal);
-    addRecentlyViewedDealId(deal.id);
-  }
 
   return (
     <div className="space-y-6">
@@ -64,17 +63,8 @@ function DashboardTab() {
         <TravelGoalTracker goal={DEFAULT_TRAVEL_GOAL} currentPoints={settings.pointsBalances[DEFAULT_TRAVEL_GOAL.program] ?? 0} />
       </section>
 
-      <section>
-        <p className="section-subtitle">Points portfolio</p>
-        <div className="mt-2 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {balanceEntries.map(([program, balance]) => (
-            <PointsBalanceCard key={program} program={program} balance={Number(balance)} onClick={() => setActiveTab("search")} />
-          ))}
-        </div>
-      </section>
-
-      <RecommendedDeals settings={settings} savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
-      <TrendingDeals savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
+      <RecommendedDeals settings={settings} savedDealIds={savedDealIds} onOpenDeal={onOpenDeal} onToggleSave={toggleSavedDeal} />
+      <TrendingDeals savedDealIds={savedDealIds} onOpenDeal={onOpenDeal} onToggleSave={toggleSavedDeal} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <RecentlyViewed dealIds={recentlyViewedDealIds} />
@@ -84,7 +74,7 @@ function DashboardTab() {
   );
 }
 
-function SearchTab() {
+function SearchTab({ onOpenDeal }) {
   const {
     experiment,
     searchState,
@@ -94,6 +84,7 @@ function SearchTab() {
     cacheStatus,
     cachedAt,
     updateSearch,
+    applySearchStateFromURL,
     clearFilters,
     refresh,
   } = useSearch();
@@ -101,25 +92,30 @@ function SearchTab() {
   const {
     settings,
     updateSettings,
-    setSelectedDeal,
     savedDealIds,
     toggleSavedDeal,
-    addRecentlyViewedDealId,
   } = useAppContext();
 
   const visibleResults = useMemo(() => results.slice(0, 18), [results]);
   const blurFromIndex = settings.isPro ? undefined : 5;
   const hiddenCount = settings.isPro ? 0 : Math.max(0, visibleResults.length - 5);
 
-  function handleOpenDeal(deal) {
-    setSelectedDeal(deal);
-    addRecentlyViewedDealId(deal.id);
-  }
+  useEffect(() => {
+    const syncSearchStateFromHistory = () => {
+      const { searchState: nextSearchState } = readUrlState();
+      applySearchStateFromURL(nextSearchState);
+    };
 
-  function upgradeToPro() {
+    window.addEventListener("popstate", syncSearchStateFromHistory);
+    return () => {
+      window.removeEventListener("popstate", syncSearchStateFromHistory);
+    };
+  }, [applySearchStateFromURL]);
+
+  const upgradeToPro = useCallback(() => {
     updateSettings({ isPro: true });
     track("upgraded_to_pro", { source: "paywall" });
-  }
+  }, [updateSettings]);
 
   return (
     <div className="space-y-4">
@@ -172,7 +168,7 @@ function SearchTab() {
             savedDealIds={savedDealIds}
             blurFromIndex={blurFromIndex}
             experimentVariant={experiment.assignment}
-            onOpenDeal={handleOpenDeal}
+            onOpenDeal={onOpenDeal}
             onToggleSave={toggleSavedDeal}
           />
           {!settings.isPro && hiddenCount > 0 ? <PaywallGate hiddenCount={hiddenCount} onUpgrade={upgradeToPro} /> : null}
@@ -209,8 +205,61 @@ function SettingsTab() {
 }
 
 function ShellContent() {
-  const { activeTab, setActiveTab, selectedDeal, setSelectedDeal, settings, savedDeals } = useAppContext();
+  const {
+    activeTab,
+    setActiveTab,
+    selectedDeal,
+    setSelectedDeal,
+    settings,
+    savedDeals,
+    recentlyViewedDealIds,
+    addRecentlyViewedDealId,
+  } = useAppContext();
   const experiment = useExperiment();
+  const { pushDealInURL } = useURLState();
+  const safeRecentlyViewedDealIds = Array.isArray(recentlyViewedDealIds) ? recentlyViewedDealIds : [];
+
+  const openDealFromUI = useCallback((deal) => {
+    setSelectedDeal(deal);
+    addRecentlyViewedDealId(deal.id);
+    pushDealInURL(deal.id);
+  }, [addRecentlyViewedDealId, pushDealInURL, setSelectedDeal]);
+
+  const closeDealFromUI = useCallback(() => {
+    setSelectedDeal(null);
+    pushDealInURL(null);
+  }, [pushDealInURL, setSelectedDeal]);
+
+  useEffect(() => {
+    const syncDealFromUrl = () => {
+      const { dealId } = readUrlState();
+      if (!dealId) {
+        setSelectedDeal(null);
+        return;
+      }
+
+      const deal = getDealSnapshotById(dealId);
+      if (deal) {
+        setSelectedDeal(deal);
+        return;
+      }
+
+      // Strip invalid deep-link deal IDs from the URL without creating a history entry.
+      const url = new URL(window.location.href);
+      url.searchParams.delete("deal");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      setSelectedDeal(null);
+    };
+
+    syncDealFromUrl();
+    window.addEventListener("popstate", syncDealFromUrl);
+    window.addEventListener("hashchange", syncDealFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", syncDealFromUrl);
+      window.removeEventListener("hashchange", syncDealFromUrl);
+    };
+  }, [setSelectedDeal]);
 
   return (
     <>
@@ -220,9 +269,18 @@ function ShellContent() {
         savedCount={savedDeals.length}
         experiment={experiment}
         onTabChange={setActiveTab}
+        rightRail={
+          <RightRail
+            activeTab={activeTab}
+            settings={settings}
+            savedDeals={savedDeals}
+            recentlyViewedDealIds={safeRecentlyViewedDealIds}
+            onTabChange={setActiveTab}
+          />
+        }
       >
-        {activeTab === "dashboard" ? <DashboardTab /> : null}
-        {activeTab === "search" ? <SearchTab /> : null}
+        {activeTab === "dashboard" ? <DashboardTab onOpenDeal={openDealFromUI} /> : null}
+        {activeTab === "search" ? <SearchTab onOpenDeal={openDealFromUI} /> : null}
         {activeTab === "saved" ? <SavedTab /> : null}
         {activeTab === "settings" ? <SettingsTab /> : null}
       </AppShell>
@@ -230,8 +288,8 @@ function ShellContent() {
       <DealDetailDrawer
         deal={selectedDeal}
         isOpen={Boolean(selectedDeal)}
-        onClose={() => setSelectedDeal(null)}
-        onSelectDeal={setSelectedDeal}
+        onClose={closeDealFromUI}
+        onSelectDeal={openDealFromUI}
       />
     </>
   );

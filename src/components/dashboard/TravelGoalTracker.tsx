@@ -17,7 +17,7 @@ export function TravelGoalTracker({ goal, currentPoints }: TravelGoalTrackerProp
         {currentPoints.toLocaleString()} / {goal.targetPoints.toLocaleString()} {PROGRAM_INFO[goal.program].shortName} ({progress}%)
       </p>
       <div className="mt-4 h-3 rounded-full bg-bg-elevated">
-        <div className="h-3 rounded-full bg-brand-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div className="h-3 rounded-full bg-brand-primary transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
       </div>
     </section>
   );
