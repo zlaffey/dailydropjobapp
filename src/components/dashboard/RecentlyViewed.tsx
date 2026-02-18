@@ -11,19 +11,20 @@ export function RecentlyViewed({ dealIds }: RecentlyViewedProps) {
     .filter((deal): deal is Deal => Boolean(deal));
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-xl font-semibold">Recently viewed</h2>
+    <section className="section-card p-4">
+      <p className="section-subtitle">Activity</p>
+      <h2 className="mt-1 section-title">Recently viewed</h2>
       {deals.length ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {deals.map((deal) => (
-            <article key={deal.id} className="rounded-xl border border-border bg-bg-card p-3">
+            <article key={deal.id} className="rounded-xl border border-border bg-bg-elevated/45 p-3">
               <p className="font-semibold">{deal.origin.code} → {deal.destination.code}</p>
               <p className="text-xs text-text-secondary">{deal.airline}</p>
             </article>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-text-secondary">Start exploring deals to see your recent activity here.</p>
+        <p className="mt-2 text-sm text-text-secondary">Start exploring deals to see your recent activity here.</p>
       )}
     </section>
   );

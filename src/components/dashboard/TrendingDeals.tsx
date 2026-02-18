@@ -21,8 +21,8 @@ export function TrendingDeals({ savedDealIds, onOpenDeal, onToggleSave }: Trendi
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">Trending deals</h2>
-        <p className="text-sm text-text-secondary">Popular with DealDrop users</p>
+        <p className="section-subtitle">Market pulse</p>
+        <h2 className="section-title">Trending deals</h2>
       </div>
       <DealGrid deals={deals} savedDealIds={savedDealIds} onOpenDeal={onOpenDeal} onToggleSave={onToggleSave} />
     </section>

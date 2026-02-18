@@ -23,16 +23,11 @@ export function SavedDealsList({ savedDeals, onRemove }: SavedDealsListProps) {
   }, [savedDeals, sortBy]);
 
   if (!savedDeals.length) {
-    return (
-      <EmptyState
-        title="No saved deals yet"
-        description="Save deals from Search to track them here."
-      />
-    );
+    return <EmptyState title="No saved deals yet" description="Save deals from Search to track them here." />;
   }
 
   return (
-    <section className="space-y-3">
+    <section className="section-card space-y-3 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-text-secondary">{savedDeals.length} saved deals</p>
         <label className="text-sm text-text-secondary">
@@ -40,7 +35,7 @@ export function SavedDealsList({ savedDeals, onRemove }: SavedDealsListProps) {
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value as "date" | "value")}
-            className="ml-2 rounded-lg border border-border bg-bg-card px-2 py-1 text-text-primary"
+            className="ml-2 rounded-lg border border-border bg-bg-elevated/70 px-2 py-1 text-text-primary"
           >
             <option value="date">Date saved</option>
             <option value="value">Best value</option>
@@ -50,7 +45,7 @@ export function SavedDealsList({ savedDeals, onRemove }: SavedDealsListProps) {
 
       <ul className="space-y-2">
         {sortedDeals.map((saved) => (
-          <li key={saved.id} className="rounded-xl border border-border bg-bg-card p-3">
+          <li key={saved.id} className="rounded-xl border border-border bg-bg-elevated/35 p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold">{saved.deal.origin.code} → {saved.deal.destination.code}</p>
@@ -60,7 +55,7 @@ export function SavedDealsList({ savedDeals, onRemove }: SavedDealsListProps) {
               <button
                 type="button"
                 onClick={() => onRemove(saved.deal.id)}
-                className="rounded-md border border-border px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
+                className="rounded-md border border-border px-2 py-1 text-xs text-text-secondary transition hover:bg-bg-elevated hover:text-text-primary"
                 aria-label={`Remove ${saved.deal.id}`}
               >
                 Remove

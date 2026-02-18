@@ -14,10 +14,10 @@ export function PointsBalanceCard({ program, balance, onClick }: PointsBalanceCa
     <button
       type="button"
       onClick={() => onClick(program)}
-      className="w-full rounded-xl border border-border bg-bg-card p-3 text-left hover:border-brand-primary/40"
+      className="section-card w-full p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-primary/40"
     >
-      <p className="text-xs text-text-secondary">{info.shortName}</p>
-      <p className="mt-1 text-lg font-semibold" style={{ color: info.color }}>
+      <p className="text-[11px] uppercase tracking-[0.12em] text-text-secondary">{info.shortName}</p>
+      <p className="mt-2 text-xl font-semibold" style={{ color: info.color }}>
         {balance.toLocaleString()} pts
       </p>
     </button>

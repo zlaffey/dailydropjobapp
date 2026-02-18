@@ -50,22 +50,36 @@ function DashboardTab() {
 
   return (
     <div className="space-y-6">
-      <PreferenceChips settings={settings} onOpenSettings={() => setActiveTab("settings")} />
+      <section className="section-card grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1.3fr_1fr]">
+        <div>
+          <p className="section-subtitle">Portfolio snapshot</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">Subscriber Dashboard</h1>
+          <p className="mt-2 max-w-2xl text-sm text-text-secondary">
+            Track balances, monitor goal progress, and surface top-value routes tailored to your preferences.
+          </p>
+          <div className="mt-4">
+            <PreferenceChips settings={settings} onOpenSettings={() => setActiveTab("settings")} />
+          </div>
+        </div>
+        <TravelGoalTracker goal={DEFAULT_TRAVEL_GOAL} currentPoints={settings.pointsBalances[DEFAULT_TRAVEL_GOAL.program] ?? 0} />
+      </section>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        {balanceEntries.map(([program, balance]) => (
-          <PointsBalanceCard key={program} program={program} balance={Number(balance)} onClick={() => setActiveTab("search")} />
-        ))}
-      </div>
-
-      <TravelGoalTracker goal={DEFAULT_TRAVEL_GOAL} currentPoints={settings.pointsBalances[DEFAULT_TRAVEL_GOAL.program] ?? 0} />
+      <section>
+        <p className="section-subtitle">Points portfolio</p>
+        <div className="mt-2 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {balanceEntries.map(([program, balance]) => (
+            <PointsBalanceCard key={program} program={program} balance={Number(balance)} onClick={() => setActiveTab("search")} />
+          ))}
+        </div>
+      </section>
 
       <RecommendedDeals settings={settings} savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
-
       <TrendingDeals savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
 
-      <RecentlyViewed dealIds={recentlyViewedDealIds} />
-      <SavedDealsPreview savedDeals={savedDeals} onViewAll={() => setActiveTab("saved")} />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <RecentlyViewed dealIds={recentlyViewedDealIds} />
+        <SavedDealsPreview savedDeals={savedDeals} onViewAll={() => setActiveTab("saved")} />
+      </div>
     </div>
   );
 }
@@ -109,13 +123,22 @@ function SearchTab() {
 
   return (
     <div className="space-y-4">
+      <div className="section-card p-4">
+        <p className="section-subtitle">Search workspace</p>
+        <h1 className="mt-1 text-xl font-semibold">Find the highest-value points deals</h1>
+      </div>
+
       <UpgradeBanner isPro={Boolean(settings.isPro)} onUpgrade={upgradeToPro} />
 
-      <SearchBar searchState={searchState} onChange={updateSearch} />
+      <div className="section-card p-4">
+        <SearchBar searchState={searchState} onChange={updateSearch} />
+      </div>
       <CacheStatusBar cacheStatus={cacheStatus} cachedAt={cachedAt} onRefresh={refresh} />
-      <ActiveFilters searchState={searchState} onChange={updateSearch} onClear={clearFilters} />
+      <div className="section-card p-4">
+        <ActiveFilters searchState={searchState} onChange={updateSearch} onClear={clearFilters} />
+      </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="section-card flex flex-wrap items-center justify-between gap-2 px-4 py-3">
         <ResultsSummary deals={visibleResults} />
         <SortControls value={searchState.sortBy} onChange={(sortBy) => updateSearch({ sortBy })} />
       </div>
@@ -161,12 +184,28 @@ function SearchTab() {
 
 function SavedTab() {
   const { savedDeals, removeSavedDeal } = useAppContext();
-  return <SavedDealsList savedDeals={savedDeals} onRemove={removeSavedDeal} />;
+  return (
+    <div className="space-y-3">
+      <div className="section-card p-4">
+        <p className="section-subtitle">Saved library</p>
+        <h1 className="mt-1 text-xl font-semibold">Track deals you want to revisit</h1>
+      </div>
+      <SavedDealsList savedDeals={savedDeals} onRemove={removeSavedDeal} />
+    </div>
+  );
 }
 
 function SettingsTab() {
   const { settings, updateSettings } = useAppContext();
-  return <SettingsForm settings={settings} onChange={updateSettings} />;
+  return (
+    <div className="space-y-3">
+      <div className="section-card p-4">
+        <p className="section-subtitle">Profile settings</p>
+        <h1 className="mt-1 text-xl font-semibold">Tune your deal feed and balances</h1>
+      </div>
+      <SettingsForm settings={settings} onChange={updateSettings} />
+    </div>
+  );
 }
 
 function ShellContent() {

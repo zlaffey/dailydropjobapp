@@ -11,7 +11,7 @@ type ActiveFiltersProps = {
 
 export function ActiveFilters({ searchState, onChange, onClear }: ActiveFiltersProps) {
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-bg-card/60 p-4">
+    <section className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <RangeSlider
           label="Max points"
@@ -42,7 +42,7 @@ export function ActiveFilters({ searchState, onChange, onClear }: ActiveFiltersP
           <Chip label="Good" selected={searchState.dealQuality === "good"} onClick={() => onChange({ dealQuality: "good" })} />
         </div>
 
-        <button type="button" onClick={onClear} className="ml-auto text-sm text-brand-primary underline">
+        <button type="button" onClick={onClear} className="ml-auto text-sm text-brand-primary underline underline-offset-2">
           Clear all
         </button>
       </div>

@@ -11,7 +11,7 @@ type SearchBarProps = {
 
 export function SearchBar({ searchState, onChange }: SearchBarProps) {
   return (
-    <section className="space-y-4 rounded-2xl border border-border bg-bg-card p-4">
+    <section className="space-y-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <AirportAutocomplete label="Origin" value={searchState.origin} onChange={(value) => onChange({ origin: value })} />
         <AirportAutocomplete label="Destination" includeAnywhere value={searchState.destination} onChange={(value) => onChange({ destination: value })} />

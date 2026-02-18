@@ -9,8 +9,9 @@ type PreferenceChipsProps = {
 
 export function PreferenceChips({ settings, onOpenSettings }: PreferenceChipsProps) {
   return (
-    <section className="rounded-2xl border border-border bg-bg-card p-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <section className="section-card px-5 py-4">
+      <p className="section-subtitle">Preferences</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {settings.homeAirports.map((airport) => (
           <Chip key={airport.code} label={airport.code} selected />
         ))}
@@ -19,7 +20,7 @@ export function PreferenceChips({ settings, onOpenSettings }: PreferenceChipsPro
         ))}
         <Chip label={settings.cabinPreference.replace("_", " ")} selected />
       </div>
-      <button type="button" onClick={onOpenSettings} className="mt-3 text-sm text-brand-primary underline">
+      <button type="button" onClick={onOpenSettings} className="mt-4 text-sm text-brand-primary underline underline-offset-2">
         Edit preferences →
       </button>
     </section>

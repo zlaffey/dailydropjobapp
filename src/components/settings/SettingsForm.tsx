@@ -44,7 +44,7 @@ export function SettingsForm({ settings, onChange }: SettingsFormProps) {
   }
 
   return (
-    <form className="space-y-5 rounded-2xl border border-border bg-bg-card p-4" onSubmit={(event) => event.preventDefault()}>
+    <form className="section-card space-y-5 p-5" onSubmit={(event) => event.preventDefault()}>
       <label className="block text-sm">
         <span className="mb-1 block text-text-secondary">Display name</span>
         <input

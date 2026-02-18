@@ -16,10 +16,10 @@ type AppShellProps = {
 export function AppShell({ settings, activeTab, savedCount, experiment, onTabChange, children }: AppShellProps) {
   return (
     <main className="min-h-screen bg-bg-primary text-text-primary">
-      <section className="mx-auto max-w-6xl space-y-4 px-4 py-6 sm:px-6">
+      <section className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6 sm:py-8">
         <Header settings={settings} />
         <TabNavigation activeTab={activeTab} savedCount={savedCount} onChange={onTabChange} />
-        {children}
+        <div className="animate-stagger space-y-5">{children}</div>
         <Footer experiment={experiment} />
       </section>
     </main>
