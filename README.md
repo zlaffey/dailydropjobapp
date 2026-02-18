@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# DealDrop
 
-## Getting Started
+DealDrop is a frontend portfolio prototype for a Daily Drop-style product: points deal search, subscriber dashboard, saved deals, settings, paywall gating, and a live A/B experiment on default sort order.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js App Router
+- React 19
+- TypeScript (for domain/services/components)
+- Tailwind CSS v4
+- Vitest + Testing Library
+
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Quality Gates
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run test:run
+npm run build -- --webpack
+```
 
-## Learn More
+Note: In this environment, `next build` with Turbopack may fail due sandbox process restrictions, so webpack mode is used for CI verification.
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `app/page.js`: app assembly with dashboard/search/saved/settings tabs.
+- `src/types`: core domain model (`Deal`, `SearchState`, `UserSettings`, etc.).
+- `src/data`: deterministic mock dataset (`60` deals).
+- `src/services`: cached search/recommendation/trending service layer.
+- `src/hooks`: URL sync, debounced search orchestration, localStorage state hooks.
+- `src/components`: modular UI by domain (`deals`, `search`, `dashboard`, `saved`, `settings`, `subscriber`, `layout`, `ui`).
+- `src/contexts/AppContext.tsx`: cross-tab app state composition.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How This Maps to Daily Drop
 
-## Deploy on Vercel
+| Daily Drop Focus | DealDrop Implementation |
+| --- | --- |
+| Deal discovery/search interfaces | Live filtering, scoring, sorting, cache status bar, URL-restorable query state |
+| Cached search UX | In-memory + localStorage cache with TTL, cache hit tracking, explicit refresh |
+| Subscriber experience | Personalized dashboard, saved deals, recently viewed, travel goal tracking |
+| Conversion + paywall UX | Free-tier blur gate after 5 results, upgrade banner, pricing toggle |
+| Experimentation and analytics | Variant assignment (`best_value` vs `lowest_points`), structured event tracking |
+| Frontend craft | Componentized architecture, responsive layout, keyboard interactions, tests |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Current Scope
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Implemented across seven phases from `plan.md`:
+
+- Foundation: data model/constants/services/testing setup
+- Deal cards + detail drawer
+- Search hooks + filters + cache UX
+- Dashboard personalization/state management
+- Saved deals + settings workflows
+- Paywall + upgrade flow + experiment metadata
+- App shell extraction, tab hash persistence, README mapping

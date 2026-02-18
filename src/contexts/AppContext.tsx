@@ -1,10 +1,18 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Deal, TabId } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
 import { useSavedDeals } from "@/hooks/useSavedDeals";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+
+const validTabs: TabId[] = ["dashboard", "search", "saved", "settings"];
+
+function readInitialTab(): TabId {
+  if (typeof window === "undefined") return "dashboard";
+  const hash = window.location.hash.replace("#", "") as TabId;
+  return validTabs.includes(hash) ? hash : "dashboard";
+}
 
 type AppContextValue = {
   activeTab: TabId;
@@ -24,11 +32,15 @@ type AppContextValue = {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [activeTab, setActiveTab] = useState<TabId>(readInitialTab);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const { settings, updateSettings } = useSettings();
   const { savedDeals, savedDealIds, toggleSavedDeal, removeSavedDeal } = useSavedDeals();
   const { recentlyViewedDealIds, addRecentlyViewedDealId } = useRecentlyViewed();
+
+  useEffect(() => {
+    window.location.hash = activeTab;
+  }, [activeTab]);
 
   const value = useMemo(
     () => ({

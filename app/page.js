@@ -26,7 +26,7 @@ import { SavedDealsList } from "@/components/saved/SavedDealsList";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { UpgradeBanner } from "@/components/subscriber/UpgradeBanner";
 import { PaywallGate } from "@/components/subscriber/PaywallGate";
-import { Footer } from "@/components/layout/Footer";
+import { AppShell } from "@/components/layout/AppShell";
 import { DEFAULT_TRAVEL_GOAL } from "@/lib/constants";
 
 function DashboardTab() {
@@ -50,8 +50,6 @@ function DashboardTab() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Good day, {settings.displayName} 👋</h1>
-
       <PreferenceChips settings={settings} onOpenSettings={() => setActiveTab("settings")} />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -62,18 +60,9 @@ function DashboardTab() {
 
       <TravelGoalTracker goal={DEFAULT_TRAVEL_GOAL} currentPoints={settings.pointsBalances[DEFAULT_TRAVEL_GOAL.program] ?? 0} />
 
-      <RecommendedDeals
-        settings={settings}
-        savedDealIds={savedDealIds}
-        onOpenDeal={handleOpenDeal}
-        onToggleSave={toggleSavedDeal}
-      />
+      <RecommendedDeals settings={settings} savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
 
-      <TrendingDeals
-        savedDealIds={savedDealIds}
-        onOpenDeal={handleOpenDeal}
-        onToggleSave={toggleSavedDeal}
-      />
+      <TrendingDeals savedDealIds={savedDealIds} onOpenDeal={handleOpenDeal} onToggleSave={toggleSavedDeal} />
 
       <RecentlyViewed dealIds={recentlyViewedDealIds} />
       <SavedDealsPreview savedDeals={savedDeals} onViewAll={() => setActiveTab("saved")} />
@@ -120,11 +109,6 @@ function SearchTab() {
 
   return (
     <div className="space-y-4">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold">DealDrop Search</h1>
-        <p className="text-sm text-text-secondary">Live search with filters, cache status, and URL state sync.</p>
-      </header>
-
       <UpgradeBanner isPro={Boolean(settings.isPro)} onUpgrade={upgradeToPro} />
 
       <SearchBar searchState={searchState} onChange={updateSearch} />
@@ -171,64 +155,38 @@ function SearchTab() {
           {!settings.isPro && hiddenCount > 0 ? <PaywallGate hiddenCount={hiddenCount} onUpgrade={upgradeToPro} /> : null}
         </>
       ) : null}
-
-      <p className="text-xs text-text-secondary">Experiment variant: {experiment.assignment}</p>
     </div>
   );
 }
 
 function SavedTab() {
   const { savedDeals, removeSavedDeal } = useAppContext();
-  return (
-    <section className="space-y-3">
-      <h1 className="text-3xl font-bold">Saved Deals</h1>
-      <SavedDealsList savedDeals={savedDeals} onRemove={removeSavedDeal} />
-    </section>
-  );
+  return <SavedDealsList savedDeals={savedDeals} onRemove={removeSavedDeal} />;
 }
 
 function SettingsTab() {
   const { settings, updateSettings } = useAppContext();
-  return (
-    <section className="space-y-3">
-      <h1 className="text-3xl font-bold">Settings</h1>
-      <SettingsForm settings={settings} onChange={updateSettings} />
-    </section>
-  );
+  return <SettingsForm settings={settings} onChange={updateSettings} />;
 }
 
 function ShellContent() {
-  const { activeTab, setActiveTab, selectedDeal, setSelectedDeal } = useAppContext();
+  const { activeTab, setActiveTab, selectedDeal, setSelectedDeal, settings, savedDeals } = useAppContext();
   const experiment = useExperiment();
 
   return (
-    <main className="min-h-screen bg-bg-primary text-text-primary">
-      <section className="mx-auto max-w-6xl space-y-4 px-4 py-6 sm:px-6">
-        <nav className="flex flex-wrap gap-2">
-          {[
-            { id: "dashboard", label: "Dashboard" },
-            { id: "search", label: "Search" },
-            { id: "saved", label: "Saved" },
-            { id: "settings", label: "Settings" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`rounded-full border px-3 py-1.5 text-sm ${activeTab === tab.id ? "border-brand-primary bg-brand-primary/20" : "border-border"}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-
+    <>
+      <AppShell
+        settings={settings}
+        activeTab={activeTab}
+        savedCount={savedDeals.length}
+        experiment={experiment}
+        onTabChange={setActiveTab}
+      >
         {activeTab === "dashboard" ? <DashboardTab /> : null}
         {activeTab === "search" ? <SearchTab /> : null}
         {activeTab === "saved" ? <SavedTab /> : null}
         {activeTab === "settings" ? <SettingsTab /> : null}
-
-        <Footer experiment={experiment} />
-      </section>
+      </AppShell>
 
       <DealDetailDrawer
         deal={selectedDeal}
@@ -236,7 +194,7 @@ function ShellContent() {
         onClose={() => setSelectedDeal(null)}
         onSelectDeal={setSelectedDeal}
       />
-    </main>
+    </>
   );
 }
 
